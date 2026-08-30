@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Scan History - SecureScan</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <nav class="navigation">
+
+            <p class="nav-title">MAIN</p>
+
+            <a href="{{ url_for('home') }}" class="nav-item">
+                <span>▣</span>
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('scanner') }}" class="nav-item">
+    <span>⌕</span>
+    <span>Port Scanner</span>
+</a>
+
+            <a href="{{ url_for('history') }}" class="nav-item active">
+                <span>◷</span>
+                Scan History
+            </a>
+
+            <p class="nav-title">MANAGEMENT</p>
+
+            <a href="{{ url_for('reports') }}" class="nav-item">
+                <span>▤</span>
+                Reports
+            </a>
+
+            <a href="{{ url_for('settings') }}" class="nav-item">
+                <span>⚙</span>
+                Settings
+            </a>
+
+            <a href="{{ url_for('about') }}" class="nav-item">
+                <span>ⓘ</span>
+                About
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>System Ready</strong>
+                    <small>Nmap engine available</small>
+                </div>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <header class="page-header">
+
+            <div>
+                <h1>Scan History</h1>
+
+                <p>
+                    Review your previous network security scans.
+                </p>
+            </div>
+
+            <a href="{{ url_for('home') }}" class="scan-button">
+                + NEW SCAN
+            </a>
+
+        </header>
+
+
+        <!-- HISTORY CARD -->
+        <section class="scanner-card history-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Recent Scans</h2>
+
+                    <p>
+                        Your latest security scan results.
+                    </p>
+                </div>
+
+                <div class="history-count">
+                    {{ history|length }} scans
+                </div>
+
+            </div>
+
+
+            {% if history %}
+
+            <!-- TABLE -->
+            <div class="history-table-wrapper">
+
+                <table class="history-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Target</th>
+                            <th>Date</th>
+                            <th>Open Ports</th>
+                            <th>Risk Level</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for scan in history %}
+
+                        <tr>
+
+                            <td>
+                                <div class="target-cell">
+
+                                    <span class="target-icon">◉</span>
+
+                                    <strong>
+                                        {{ scan.target }}
+                                    </strong>
+
+                                </div>
+                            </td>
+
+
+                            <td class="date-cell">
+                                {{ scan.date }}
+                            </td>
+
+
+                            <td>
+
+                                <span class="port-count">
+                                    {{ scan.open_ports }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="risk-badge risk-{{ scan.risk_level|lower }}">
+                                    {{ scan.risk_level }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            {% else %}
+
+            <!-- EMPTY STATE -->
+
+            <div class="empty-history">
+
+                <div class="empty-icon">
+                    ◷
+                </div>
+
+                <h3>No Scan History</h3>
+
+                <p>
+                    You haven't performed any scans yet.
+                </p>
+
+                <a href="{{ url_for('home') }}" class="scan-button">
+                    START A SCAN
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Port Scanner - SecureScan</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ◈
+            </div>
+
+            <div>
+                <h2>SECURESCAN</h2>
+                <span>NETWORK SECURITY</span>
+            </div>
+
+        </div>
+
+
+        <nav class="navigation">
+
+            <p class="nav-title">
+                MAIN
+            </p>
+
+
+            <a href="{{ url_for('home') }}"
+               class="nav-item">
+
+                <span>▦</span>
+                <span>Dashboard</span>
+
+            </a>
+
+
+            <a href="{{ url_for('scanner') }}"
+               class="nav-item active">
+
+                <span>⌕</span>
+                <span>Port Scanner</span>
+
+            </a>
+
+
+            <a href="{{ url_for('history') }}"
+               class="nav-item">
+
+                <span>◷</span>
+                <span>Scan History</span>
+
+            </a>
+
+
+            <p class="nav-title">
+                MANAGEMENT
+            </p>
+
+
+            <a href="{{ url_for('reports') }}"
+               class="nav-item">
+
+                <span>▤</span>
+                <span>Reports</span>
+
+            </a>
+
+
+            <a href="{{ url_for('settings') }}"
+               class="nav-item">
+
+                <span>⚙</span>
+                <span>Settings</span>
+
+            </a>
+
+
+            <a href="{{ url_for('about') }}"
+               class="nav-item">
+
+                <span>ⓘ</span>
+                <span>About</span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        System Ready
+                    </strong>
+
+                    <small>
+                        Nmap engine available
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="main">
+
+
+        <!-- =================================================
+             TOP BAR
+        ================================================== -->
+
+        <header class="topbar">
+
+            <div>
+
+                <span class="breadcrumb">
+                    SECURITY / PORT SCANNER
+                </span>
+
+                <h1>
+                    Network Port Scanner
+                </h1>
+
+                <p>
+                    Scan an authorized IP address or hostname
+                    for open network ports.
+                </p>
+
+            </div>
+
+
+            <div class="topbar-status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    NMAP READY
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             SCANNER CARD
+        ================================================== -->
+
+        <section class="scanner-card">
+
+            <div class="scanner-header">
+
+                <div>
+
+                    <span class="section-label">
+                        NMAP SCANNER
+                    </span>
+
+                    <h2>
+                        Start Network Scan
+                    </h2>
+
+                    <p>
+                        Enter a target to identify open ports
+                        and running network services.
+                    </p>
+
+                </div>
+
+
+                <div class="scanner-icon">
+                    ⌁
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SCAN FORM
+            ================================================== -->
+
+            <form
+                method="POST"
+                action="{{ url_for('scanner') }}"
+                class="scan-form"
+            >
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">
+                        ◉
+                    </span>
+
+                    <input
+                        type="text"
+                        id="target"
+                        name="target"
+                        value="{{ target }}"
+                        placeholder="Enter IP address or hostname"
+                        autocomplete="off"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="scan-button"
+                >
+
+                    <span id="scanIcon">
+                        ⌕
+                    </span>
+
+                    START SCAN
+
+                </button>
+
+            </form>
+
+
+            <!-- =================================================
+                 SCAN INFORMATION
+            ================================================== -->
+
+            <div class="scan-info">
+
+                <span>●</span>
+
+                NMAP ENGINE READY
+
+                <span class="separator">|</span>
+
+                Scan Type:
+
+                <strong>
+                    {{ scan_type|capitalize }}
+                </strong>
+
+                <span class="separator">|</span>
+
+                Service Detection:
+
+                {% if service_detection %}
+
+                    <strong>
+                        Enabled
+                    </strong>
+
+                {% else %}
+
+                    <strong>
+                        Disabled
+                    </strong>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 ERROR
+            ================================================== -->
+
+            {% if error_message %}
+
+            <div class="scan-error">
+
+                <strong>
+                    Scan Failed
+                </strong>
+
+                <p>
+                    {{ error_message }}
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- =================================================
+             RESULTS
+        ================================================== -->
+
+        {% if results %}
+
+        <section class="panel">
+
+
+            <!-- RESULTS HEADER -->
+
+            <div class="panel-header">
+
+                <div>
+
+                    <span class="section-label">
+                        SCAN RESULTS
+                    </span>
+
+                    <h2>
+                        Detected Network Services
+                    </h2>
+
+                </div>
+
+
+                <span class="result-count">
+
+                    {{ results|length }}
+                    OPEN PORT{% if results|length != 1 %}S{% endif %}
+
+                </span>
+
+            </div>
+
+
+            <!-- =================================================
+                 SCAN SUMMARY
+            ================================================== -->
+
+            <div class="report-summary">
+
+                <div class="report-stat">
+
+                    <span>
+                        TARGET
+                    </span>
+
+                    <strong>
+                        {{ target }}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-stat">
+
+                    <span>
+                        OPEN PORTS
+                    </span>
+
+                    <strong>
+                        {{ results|length }}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-stat">
+
+                    <span>
+                        RISK LEVEL
+                    </span>
+
+                    <strong>
+                        {{ risk_level }}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-stat">
+
+                    <span>
+                        SCAN TYPE
+                    </span>
+
+                    <strong>
+                        {{ scan_type|capitalize }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RESULTS TABLE
+            ================================================== -->
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PORT
+                            </th>
+
+                            <th>
+                                PROTOCOL
+                            </th>
+
+                            <th>
+                                STATE
+                            </th>
+
+                            <th>
+                                SERVICE
+                            </th>
+
+                            <th>
+                                PRODUCT
+                            </th>
+
+                            <th>
+                                VERSION
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for result in results %}
+
+                        <tr>
+
+                            <td>
+
+                                <span class="port-number">
+                                    {{ result.port }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+                                {{ result.protocol|upper }}
+                            </td>
+
+
+                            <td>
+
+                                <span class="state-badge">
+
+                                    <span class="mini-dot"></span>
+
+                                    {{ result.state|upper }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="service-name">
+                                    {{ result.service or "Unknown" }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+                                {{ result.product or "—" }}
+                            </td>
+
+
+                            <td>
+                                {{ result.version or "—" }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 SECURITY ANALYSIS
+            ================================================== -->
+
+            <div class="security-panel">
+
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            SECURITY ANALYSIS
+                        </span>
+
+                        <h2>
+                            Security Recommendations
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                {% if recommendations %}
+
+                <div class="recommendations">
+
+                    <ul>
+
+                        {% for recommendation in recommendations %}
+
+                        <li>
+
+                            <span>
+                                ›
+                            </span>
+
+                            <div>
+                                {{ recommendation }}
+                            </div>
+
+                        </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-recommendations">
+
+                    <p>
+                        No security recommendations are available
+                        for this scan.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+        </section>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             NO OPEN PORTS
+        ================================================== -->
+
+        {% if not results and not error_message and target %}
+
+        <section class="panel">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ✓
+                </div>
+
+                <h3>
+                    No Open Ports Detected
+                </h3>
+
+                <p>
+                    The scan completed successfully, but no open
+                    ports were found on the target.
+                </p>
+
+            </div>
+
+        </section>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer>
+
+            <span>
+                SECURESCAN • NETWORK SECURITY TOOL
+            </span>
+
+            <span>
+                NMAP ENGINE • LOCAL INSTANCE
+            </span>
+
+        </footer>
+
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     SCANNING TIMER
+========================================================= -->
+
+<script>
+
+const scanForm = document.querySelector(".scan-form");
+const scanButton = document.querySelector(".scan-button");
+
+if (scanForm && scanButton) {
+
+    scanForm.addEventListener("submit", function () {
+
+        /* Prevent multiple clicks */
+
+        scanButton.disabled = true;
+
+        scanButton.classList.add("scanning");
+
+
+        /* Starting time */
+
+        let seconds = 0;
+
+
+        /* Initial button text */
+
+        scanButton.innerHTML =
+            '<span id="scanIcon">◌</span> SCANNING... 00:00';
+
+
+        /* Start timer */
+
+        const timer = setInterval(function () {
+
+            seconds++;
+
+
+            const minutes =
+                Math.floor(seconds / 60);
+
+
+            const remainingSeconds =
+                seconds % 60;
+
+
+            const formattedTime =
+                String(minutes).padStart(2, "0")
+                + ":"
+                + String(remainingSeconds).padStart(2, "0");
+
+
+            scanButton.innerHTML =
+                '<span id="scanIcon">◌</span> SCANNING... '
+                + formattedTime;
+
+
+        }, 1000);
+
+    });
+
+}
+
+</script>
+
+
+</body>
+</html>

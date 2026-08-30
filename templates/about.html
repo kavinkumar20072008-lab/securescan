@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>About - SecureScan</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <nav class="navigation">
+
+            <p class="nav-title">MAIN</p>
+
+            <a href="{{ url_for('home') }}" class="nav-item">
+                <span>▣</span>
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('scanner') }}" class="nav-item">
+    <span>⌕</span>
+    <span>Port Scanner</span>
+</a>
+
+            <a href="{{ url_for('history') }}" class="nav-item">
+                <span>◷</span>
+                Scan History
+            </a>
+
+            <p class="nav-title">MANAGEMENT</p>
+
+            <a href="{{ url_for('reports') }}" class="nav-item">
+                <span>▤</span>
+                Reports
+            </a>
+
+            <a href="{{ url_for('settings') }}" class="nav-item">
+                <span>⚙</span>
+                Settings
+            </a>
+
+            <a href="{{ url_for('about') }}" class="nav-item active">
+                <span>ⓘ</span>
+                About
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>System Ready</strong>
+                    <small>Nmap engine available</small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <header class="page-header">
+
+            <div>
+
+                <span class="section-label">
+                    INFORMATION
+                </span>
+
+                <h1>About SecureScan</h1>
+
+                <p>
+                    Network reconnaissance and security analysis platform.
+                </p>
+
+            </div>
+
+        </header>
+
+
+        <!-- PROJECT OVERVIEW -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>SecureScan</h2>
+
+                    <p>
+                        A web-based network port scanning and security
+                        assessment application.
+                    </p>
+
+                </div>
+
+                <div class="scanner-icon">
+                    ◈
+                </div>
+
+            </div>
+
+
+            <div class="about-content">
+
+                <p>
+                    SecureScan provides a simple interface for performing
+                    authorized network reconnaissance using the Nmap
+                    scanning engine.
+                </p>
+
+                <p>
+                    The application analyzes discovered open ports,
+                    identifies available services and provides a basic
+                    security risk assessment.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- TECHNOLOGY STACK -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Technology Stack</h2>
+
+                    <p>
+                        Technologies used to build SecureScan.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <span class="stat-label">
+                            BACKEND
+                        </span>
+
+                        <span class="stat-icon">
+                            ◈
+                        </span>
+
+                    </div>
+
+                    <div class="stat-value">
+                        Python
+                    </div>
+
+                    <div class="stat-description">
+                        Application logic
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <span class="stat-label">
+                            FRAMEWORK
+                        </span>
+
+                        <span class="stat-icon">
+                            ◇
+                        </span>
+
+                    </div>
+
+                    <div class="stat-value">
+                        Flask
+                    </div>
+
+                    <div class="stat-description">
+                        Web application framework
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <span class="stat-label">
+                            SCANNER
+                        </span>
+
+                        <span class="stat-icon">
+                            ⌕
+                        </span>
+
+                    </div>
+
+                    <div class="stat-value">
+                        Nmap
+                    </div>
+
+                    <div class="stat-description">
+                        Network discovery engine
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <span class="stat-label">
+                            FRONTEND
+                        </span>
+
+                        <span class="stat-icon">
+                            ◫
+                        </span>
+
+                    </div>
+
+                    <div class="stat-value">
+                        HTML / CSS
+                    </div>
+
+                    <div class="stat-description">
+                        User interface
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FEATURES -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Core Features</h2>
+
+                    <p>
+                        Current capabilities of the application.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="recommendations">
+
+                <ul>
+
+                    <li>
+                        <span>✓</span>
+                        Network port discovery using Nmap
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Service and version identification
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Basic security risk assessment
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Scan history
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Security report overview
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </section>
+
+
+        <!-- SECURITY NOTICE -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Authorized Use</h2>
+
+                    <p>
+                        Security and ethical testing notice.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="recommendations">
+
+                <p>
+                    SecureScan should only be used against systems,
+                    networks and devices that you own or have explicit
+                    permission to test.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+
+            <span>
+                SECURESCAN • NETWORK SECURITY TOOL
+            </span>
+
+            <span>
+                NMAP ENGINE • LOCAL INSTANCE
+            </span>
+
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

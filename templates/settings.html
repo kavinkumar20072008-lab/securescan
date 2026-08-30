@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Settings - SecureScan</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <nav class="navigation">
+
+            <p class="nav-title">MAIN</p>
+
+            <a href="{{ url_for('home') }}" class="nav-item">
+                <span>▣</span>
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('scanner') }}" class="nav-item">
+    <span>⌕</span>
+    <span>Port Scanner</span>
+</a>
+
+            <a href="{{ url_for('history') }}" class="nav-item">
+                <span>◷</span>
+                Scan History
+            </a>
+
+            <p class="nav-title">MANAGEMENT</p>
+
+            <a href="{{ url_for('reports') }}" class="nav-item">
+                <span>▤</span>
+                Reports
+            </a>
+
+            <a href="{{ url_for('settings') }}" class="nav-item active">
+                <span>⚙</span>
+                Settings
+            </a>
+
+            <a href="{{ url_for('about') }}" class="nav-item">
+                <span>ⓘ</span>
+                About
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>System Ready</strong>
+                    <small>Nmap engine available</small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <header class="page-header">
+
+            <div>
+
+                <span class="section-label">
+                    CONFIGURATION
+                </span>
+
+                <h1>Scanner Settings</h1>
+
+                <p>
+                    Configure how SecureScan performs network analysis.
+                </p>
+
+            </div>
+
+        </header>
+
+
+        <!-- SETTINGS CARD -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Scan Configuration</h2>
+
+                    <p>
+                        Choose the scanning behaviour used by the application.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form method="POST"
+                  action="{{ url_for('settings') }}"
+                  class="settings-form">
+
+
+                <!-- SCAN TYPE -->
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <h3>Scan Type</h3>
+
+                        <p>
+                            Select the type of Nmap scan to perform.
+                        </p>
+
+                    </div>
+
+
+                    <select name="scan_type">
+
+                        <option value="standard"
+                            {% if settings.scan_type == "standard" %}
+                                selected
+                            {% endif %}>
+                            Standard Scan
+                        </option>
+
+                        <option value="quick"
+                            {% if settings.scan_type == "quick" %}
+                                selected
+                            {% endif %}>
+                            Quick Scan
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- SERVICE DETECTION -->
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <h3>Service Detection</h3>
+
+                        <p>
+                            Detect service names and versions running on open ports.
+                        </p>
+
+                    </div>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            name="service_detection"
+                            {% if settings.service_detection %}
+                                checked
+                            {% endif %}
+                        >
+
+                        <span class="slider"></span>
+
+                    </label>
+
+                </div>
+
+
+                <!-- SAVE BUTTON -->
+                <div class="settings-actions">
+
+                    <button type="submit"
+                            class="scan-button">
+
+                        SAVE SETTINGS
+
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            {% if saved %}
+
+            <div class="settings-success">
+
+                ✓ Settings saved successfully.
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- SECURITY NOTICE -->
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Security Notice</h2>
+
+                    <p>
+                        SecureScan is intended for authorized security testing.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="recommendations">
+
+                <ul>
+
+                    <li>
+                        <span>›</span>
+                        Only scan systems you own or have permission to test.
+                    </li>
+
+                    <li>
+                        <span>›</span>
+                        Avoid aggressive scanning against production systems.
+                    </li>
+
+                    <li>
+                        <span>›</span>
+                        Review detected services before making security decisions.
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+</body>
+</html>

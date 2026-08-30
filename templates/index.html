@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SecureScan | Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ◈
+            </div>
+
+            <div>
+                <h2>SECURESCAN</h2>
+
+                <span>
+                    NETWORK SECURITY
+                </span>
+            </div>
+
+        </div>
+
+
+        <nav class="navigation">
+
+            <p class="nav-title">
+                MAIN
+            </p>
+
+            <a href="/" class="nav-item active">
+                <span>▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('scanner') }}" class="nav-item">
+                <span>⌕</span>
+                <span>Port Scanner</span>
+            </a>
+
+            <a href="{{ url_for('history') }}" class="nav-item">
+                <span>◷</span>
+                <span>Scan History</span>
+            </a>
+
+
+            <p class="nav-title">
+                MANAGEMENT
+            </p>
+
+            <a href="{{ url_for('reports') }}" class="nav-item">
+                <span>▤</span>
+                <span>Reports</span>
+            </a>
+
+            <a href="{{ url_for('settings') }}" class="nav-item">
+                <span>⚙</span>
+                <span>Settings</span>
+            </a>
+
+            <a href="{{ url_for('about') }}" class="nav-item">
+                <span>ⓘ</span>
+                <span>About</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>
+                        System Ready
+                    </strong>
+
+                    <small>
+                        Nmap engine available
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main">
+
+
+        <!-- HEADER -->
+
+        <header class="topbar">
+
+            <div>
+
+                <span class="breadcrumb">
+                    SECURITY / DASHBOARD
+                </span>
+
+                <h1>
+                    Network Security Dashboard
+                </h1>
+
+                <p>
+                    Overview of SecureScan network security activity.
+                </p>
+
+            </div>
+
+
+            <div class="topbar-status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    OPERATIONAL
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             DASHBOARD STATISTICS
+        ================================================== -->
+
+        <section class="stats-grid">
+
+
+            <!-- TOTAL SCANS -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        TOTAL SCANS
+                    </span>
+
+                    <span class="stat-icon">
+                        ◉
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.total_scans }}
+
+                </div>
+
+                <div class="stat-description">
+                    Scans performed
+                </div>
+
+            </div>
+
+
+            <!-- OPEN PORTS -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        OPEN PORTS
+                    </span>
+
+                    <span class="stat-icon">
+                        ◈
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.total_open_ports }}
+
+                </div>
+
+                <div class="stat-description">
+                    Ports detected
+                </div>
+
+            </div>
+
+
+            <!-- HIGH RISK -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        HIGH RISK
+                    </span>
+
+                    <span class="stat-icon">
+                        !
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.high_risk }}
+
+                </div>
+
+                <div class="stat-description">
+                    High risk scans
+                </div>
+
+            </div>
+
+
+            <!-- MEDIUM RISK -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        MEDIUM RISK
+                    </span>
+
+                    <span class="stat-icon">
+                        ⚠
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.medium_risk }}
+
+                </div>
+
+                <div class="stat-description">
+                    Medium risk scans
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RISK SUMMARY
+        ================================================== -->
+
+        <section class="stats-grid">
+
+
+            <!-- LOW RISK -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        LOW RISK
+                    </span>
+
+                    <span class="stat-icon">
+                        ✓
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.low_risk }}
+
+                </div>
+
+                <div class="stat-description">
+                    Low risk scans
+                </div>
+
+            </div>
+
+
+            <!-- LATEST TARGET -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        LATEST TARGET
+                    </span>
+
+                    <span class="stat-icon">
+                        ◎
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.latest_target }}
+
+                </div>
+
+                <div class="stat-description">
+                    Most recent scan
+                </div>
+
+            </div>
+
+
+            <!-- LATEST RISK -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        LATEST RISK
+                    </span>
+
+                    <span class="stat-icon">
+                        ◈
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.latest_risk }}
+
+                </div>
+
+                <div class="stat-description">
+                    Latest assessment
+                </div>
+
+            </div>
+
+
+            <!-- LATEST DATE -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <span class="stat-label">
+                        LAST SCAN
+                    </span>
+
+                    <span class="stat-icon">
+                        ◷
+                    </span>
+
+                </div>
+
+                <div class="stat-value">
+
+                    {{ dashboard_stats.latest_date }}
+
+                </div>
+
+                <div class="stat-description">
+                    Most recent scan time
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             QUICK ACTION
+        ================================================== -->
+
+        <section class="scanner-card">
+
+            <div class="scanner-header">
+
+                <div>
+
+                    <span class="section-label">
+                        NETWORK ANALYSIS
+                    </span>
+
+                    <h2>
+                        Start a Security Scan
+                    </h2>
+
+                    <p>
+                        Open the Port Scanner to analyze an authorized
+                        IP address or hostname.
+                    </p>
+
+                </div>
+
+
+                <div class="scanner-icon">
+                    ⌁
+                </div>
+
+            </div>
+
+
+            <div class="settings-actions">
+
+                <a href="{{ url_for('scanner') }}"
+                   class="scan-button">
+
+                    OPEN PORT SCANNER
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             LATEST SCAN
+        ================================================== -->
+
+        <section class="scanner-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <span class="section-label">
+                        RECENT ACTIVITY
+                    </span>
+
+                    <h2>
+                        Latest Scan
+                    </h2>
+
+                    <p>
+                        Information from the most recent security scan.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {% if dashboard_stats.total_scans > 0 %}
+
+            <div class="report-summary">
+
+                <div class="report-stat">
+
+                    <span>
+                        TARGET
+                    </span>
+
+                    <strong>
+                        {{ dashboard_stats.latest_target }}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-stat">
+
+                    <span>
+                        RISK LEVEL
+                    </span>
+
+                    <strong>
+                        {{ dashboard_stats.latest_risk }}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-stat">
+
+                    <span>
+                        SCAN DATE
+                    </span>
+
+                    <strong>
+                        {{ dashboard_stats.latest_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-actions">
+
+                <a href="{{ url_for('history') }}"
+                   class="scan-button">
+
+                    VIEW SCAN HISTORY
+
+                </a>
+
+                <a href="{{ url_for('reports') }}"
+                   class="scan-button">
+
+                    VIEW REPORTS
+
+                </a>
+
+            </div>
+
+
+            {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ◷
+                </div>
+
+                <h3>
+                    No Scans Yet
+                </h3>
+
+                <p>
+                    Start your first authorized network scan
+                    using the Port Scanner.
+                </p>
+
+                <a href="{{ url_for('scanner') }}"
+                   class="scan-button">
+
+                    START FIRST SCAN
+
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer>
+
+            <span>
+                SECURESCAN • NETWORK SECURITY TOOL
+            </span>
+
+            <span>
+                NMAP ENGINE • LOCAL INSTANCE
+            </span>
+
+        </footer>
+
+
+    </main>
+
+</div>
+
+</body>
+</html>

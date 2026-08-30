@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+securescan.db
+scan_history.json
+.env

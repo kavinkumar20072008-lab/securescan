@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Reports - SecureScan</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ◈
+            </div>
+
+            <div>
+
+                <h2>
+                    SECURESCAN
+                </h2>
+
+                <span>
+                    NETWORK SECURITY
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="navigation">
+
+
+            <p class="nav-title">
+                MAIN
+            </p>
+
+
+            <a href="{{ url_for('home') }}"
+               class="nav-item">
+
+                <span>▦</span>
+                <span>Dashboard</span>
+
+            </a>
+
+
+            <a href="{{ url_for('scanner') }}" class="nav-item">
+    <span>⌕</span>
+    <span>Port Scanner</span>
+</a>
+
+            <a href="{{ url_for('history') }}"
+               class="nav-item">
+
+                <span>◷</span>
+                <span>Scan History</span>
+
+            </a>
+
+
+            <p class="nav-title">
+                MANAGEMENT
+            </p>
+
+
+            <a href="{{ url_for('reports') }}"
+               class="nav-item active">
+
+                <span>▤</span>
+                <span>Reports</span>
+
+            </a>
+
+
+            <a href="{{ url_for('settings') }}"
+               class="nav-item">
+
+                <span>⚙</span>
+                <span>Settings</span>
+
+            </a>
+
+
+            <a href="{{ url_for('about') }}"
+               class="nav-item">
+
+                <span>ⓘ</span>
+                <span>About</span>
+
+            </a>
+
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        System Ready
+                    </strong>
+
+                    <small>
+                        Nmap engine available
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main">
+
+
+        <!-- HEADER -->
+
+        <header class="page-header">
+
+
+            <div>
+
+                <span class="section-label">
+                    SECURITY MANAGEMENT
+                </span>
+
+                <h1>
+                    Security Reports
+                </h1>
+
+                <p>
+                    Review detailed results from previous network scans.
+                </p>
+
+            </div>
+
+
+            <a href="{{ url_for('home') }}"
+               class="scan-button report-scan-button">
+
+                ⌕
+                NEW SCAN
+
+            </a>
+
+
+        </header>
+
+
+
+        {% if history %}
+
+
+        <!-- =================================================
+             REPORTS
+        ================================================== -->
+
+        <div class="reports-container">
+
+
+            {% for scan in history %}
+
+
+            <section class="scanner-card report-card">
+
+
+                <!-- REPORT TOP -->
+
+                <div class="report-header">
+
+
+                    <div class="report-target">
+
+
+                        <span class="section-label">
+                            SECURITY SCAN REPORT
+                        </span>
+
+
+                        <h2>
+                            {{ scan.target }}
+                        </h2>
+
+
+                        <p>
+                            Scanned on {{ scan.date }}
+                        </p>
+
+
+                    </div>
+
+
+                    <!-- RISK -->
+
+                    <div class="report-risk">
+
+
+                        <span>
+                            RISK LEVEL
+                        </span>
+
+
+                        <strong class="risk-badge risk-{{ scan.risk_level|lower }}">
+
+                            {{ scan.risk_level }}
+
+                        </strong>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     REPORT SUMMARY
+                ================================================== -->
+
+                <div class="report-summary">
+
+
+                    <!-- OPEN PORTS -->
+
+                    <div class="report-stat">
+
+                        <span>
+                            OPEN PORTS
+                        </span>
+
+                        <strong>
+                            {{ scan.open_ports }}
+                        </strong>
+
+                    </div>
+
+
+                    <!-- ENGINE -->
+
+                    <div class="report-stat">
+
+                        <span>
+                            SCAN ENGINE
+                        </span>
+
+                        <strong>
+                            NMAP
+                        </strong>
+
+                    </div>
+
+
+                    <!-- SERVICES -->
+
+                    <div class="report-stat">
+
+                        <span>
+                            SERVICES
+                        </span>
+
+                        <strong>
+
+                            {% if scan.results %}
+
+                                {{ scan.results|selectattr("service")|list|length }}
+
+                            {% else %}
+
+                                0
+
+                            {% endif %}
+
+                        </strong>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="report-stat">
+
+                        <span>
+                            SCAN DATE
+                        </span>
+
+                        <strong class="report-date">
+                            {{ scan.date }}
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     DETECTED SERVICES
+                ================================================== -->
+
+                <div class="report-section">
+
+
+                    <div class="report-section-title">
+
+
+                        <div>
+
+                            <span class="section-label">
+                                NETWORK EXPOSURE
+                            </span>
+
+                            <h3>
+                                Detected Services
+                            </h3>
+
+                            <p>
+                                Services and ports identified during this scan.
+                            </p>
+
+                        </div>
+
+
+                        {% if scan.results %}
+
+                        <span class="result-count">
+
+                            {{ scan.results|length }}
+                            PORTS
+
+                        </span>
+
+                        {% endif %}
+
+
+                    </div>
+
+
+
+                    {% if scan.results %}
+
+
+                    <div class="history-table-wrapper">
+
+
+                        <table class="history-table">
+
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        PORT
+                                    </th>
+
+                                    <th>
+                                        PROTOCOL
+                                    </th>
+
+                                    <th>
+                                        STATE
+                                    </th>
+
+                                    <th>
+                                        SERVICE
+                                    </th>
+
+                                    <th>
+                                        PRODUCT
+                                    </th>
+
+                                    <th>
+                                        VERSION
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                            {% for result in scan.results %}
+
+
+                            <tr>
+
+
+                                <td>
+
+                                    <strong class="report-port">
+                                        {{ result.port }}
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+                                    {{ result.protocol|upper }}
+                                </td>
+
+
+                                <td>
+
+                                    <span class="state-badge">
+
+                                        <span class="mini-dot"></span>
+
+                                        {{ result.state|upper }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="report-service">
+
+                                    {{ result.service or "Unknown" }}
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ result.product or "—" }}
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ result.version or "—" }}
+
+                                </td>
+
+
+                            </tr>
+
+
+                            {% endfor %}
+
+
+                            </tbody>
+
+
+                        </table>
+
+
+                    </div>
+
+
+                    {% else %}
+
+
+                    <div class="report-empty">
+
+
+                        <div class="report-empty-icon">
+                            ✓
+                        </div>
+
+
+                        <div>
+
+                            <h4>
+                                No Open Ports Detected
+                            </h4>
+
+                            <p>
+                                No network services were exposed during this scan.
+                            </p>
+
+                        </div>
+
+
+                    </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     SECURITY RECOMMENDATIONS
+                ================================================== -->
+
+                <div class="report-recommendations">
+
+
+                    <div class="report-section-title">
+
+
+                        <div>
+
+                            <span class="section-label">
+                                SECURITY GUIDANCE
+                            </span>
+
+                            <h3>
+                                Recommendations
+                            </h3>
+
+                        </div>
+
+
+                    </div>
+
+
+                    {% if scan.recommendations %}
+
+
+                    <ul class="report-recommendation-list">
+
+
+                        {% for recommendation in scan.recommendations %}
+
+
+                        <li>
+
+                            <span class="recommendation-arrow">
+                                ›
+                            </span>
+
+                            <span>
+                                {{ recommendation }}
+                            </span>
+
+                        </li>
+
+
+                        {% endfor %}
+
+
+                    </ul>
+
+
+                    {% else %}
+
+
+                    <p class="no-recommendations">
+                        No additional recommendations were generated.
+                    </p>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+
+                <!-- FOOTER -->
+
+                <div class="report-footer">
+
+
+                    <span>
+                        SECURESCAN SECURITY ASSESSMENT
+                    </span>
+
+
+                    <span>
+                        NMAP-BASED NETWORK ANALYSIS
+                    </span>
+
+
+                </div>
+
+
+            </section>
+
+
+            {% endfor %}
+
+
+        </div>
+
+
+        {% else %}
+
+
+        <!-- =================================================
+             EMPTY STATE
+        ================================================== -->
+
+        <section class="scanner-card">
+
+
+            <div class="empty-history">
+
+
+                <div class="empty-icon">
+                    ▤
+                </div>
+
+
+                <h3>
+                    No Reports Available
+                </h3>
+
+
+                <p>
+                    Perform a network scan first to generate a security report.
+                </p>
+
+
+                <a href="{{ url_for('home') }}"
+                   class="scan-button">
+
+                    ⌕
+                    START A SCAN
+
+                </a>
+
+
+            </div>
+
+
+        </section>
+
+
+        {% endif %}
+
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            <span>
+                SECURESCAN • SECURITY REPORTING
+            </span>
+
+            <span>
+                NMAP ENGINE • LOCAL INSTANCE
+            </span>
+
+        </footer>
+
+
+    </main>
+
+
+</div>
+
+
+</body>
+
+</html>
