@@ -7,7 +7,8 @@ import xml.etree.ElementTree as ET
 # NMAP CONFIGURATION
 # ============================================================
 
-SCAN_TIMEOUT = 150
+# Maximum time allowed for one scan
+SCAN_TIMEOUT = 120
 
 
 # ============================================================
@@ -22,65 +23,109 @@ def scan_target(
     """
     Scan an authorized target using Nmap.
 
-    Returns a list of dictionaries containing:
-        port
-        protocol
-        state
-        service
-        product
-        version
+    Quick Scan:
+        - Nmap's common ports
+        - Fast
+
+    Standard Scan:
+        - TCP ports 1-1000
+        - Optional service detection
+        - Faster than scanning 1-10000
+
+    Returns:
+        [
+            {
+                "port": 80,
+                "protocol": "tcp",
+                "state": "open",
+                "service": "http",
+                "product": "...",
+                "version": "..."
+            }
+        ]
     """
 
-    # --------------------------------------------------------
+    # ========================================================
     # FIND NMAP
-    # --------------------------------------------------------
+    # ========================================================
 
     nmap_path = shutil.which("nmap")
 
     if not nmap_path:
-
         raise RuntimeError(
             "Nmap is not installed or is not available in PATH."
         )
 
-    # --------------------------------------------------------
-    # SCAN TYPE
-    # --------------------------------------------------------
+    # ========================================================
+    # NORMALIZE SCAN TYPE
+    # ========================================================
+
+    scan_type = str(scan_type).lower().strip()
+
+    # ========================================================
+    # BUILD COMMAND
+    # ========================================================
 
     if scan_type == "quick":
+
+        # ----------------------------------------------------
+        # QUICK SCAN
+        # ----------------------------------------------------
+        #
+        # Scans Nmap's 100 most common ports.
+        #
 
         arguments = [
             "-T4",
             "-F"
         ]
 
-    else:
+    elif scan_type == "standard":
+
+        # ----------------------------------------------------
+        # STANDARD SCAN
+        # ----------------------------------------------------
+        #
+        # Scan the first 1000 TCP ports.
+        #
+        # This is considerably faster than 1-10000.
+        #
 
         arguments = [
             "-T4",
-            "-p-"
+            "-p",
+            "1-1000"
         ]
 
-    # --------------------------------------------------------
-    # SERVICE DETECTION
-    # --------------------------------------------------------
+        # ----------------------------------------------------
+        # SERVICE DETECTION
+        # ----------------------------------------------------
 
-    if service_detection:
+        if service_detection:
 
-        arguments.append("-sV")
+            arguments.extend([
+                "-sV",
+                "--version-light"
+            ])
 
-    # --------------------------------------------------------
+    else:
+
+        raise RuntimeError(
+            f"Invalid scan type: {scan_type}"
+        )
+
+    # ========================================================
     # XML OUTPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     arguments.extend([
         "-oX",
         "-"
     ])
 
-    # --------------------------------------------------------
-    # BUILD COMMAND
-    # --------------------------------------------------------
+    # ========================================================
+    # FINAL COMMAND
+    # ========================================================
 
     command = [
         nmap_path,
@@ -88,9 +133,9 @@ def scan_target(
         target
     ]
 
-    # --------------------------------------------------------
+    # ========================================================
     # RUN NMAP
-    # --------------------------------------------------------
+    # ========================================================
 
     try:
 
@@ -105,8 +150,9 @@ def scan_target(
     except subprocess.TimeoutExpired:
 
         raise RuntimeError(
-            "The scan timed out. "
-            "Try using Quick Scan or another authorized target."
+            "The scan timed out after "
+            f"{SCAN_TIMEOUT} seconds. "
+            "Try Quick Scan or disable service detection."
         )
 
     except OSError as error:
@@ -115,24 +161,35 @@ def scan_target(
             f"Unable to start Nmap: {error}"
         )
 
-    # --------------------------------------------------------
-    # NMAP ERROR
-    # --------------------------------------------------------
+    # ========================================================
+    # CHECK NMAP ERROR
+    # ========================================================
 
     if process.returncode != 0:
 
         error_output = (
             process.stderr.strip()
+            or process.stdout.strip()
             or "Nmap returned an error."
         )
 
         raise RuntimeError(
-            error_output
+            f"Nmap scan failed: {error_output}"
         )
 
-    # --------------------------------------------------------
+    # ========================================================
+    # CHECK OUTPUT
+    # ========================================================
+
+    if not process.stdout.strip():
+
+        raise RuntimeError(
+            "Nmap returned no scan results."
+        )
+
+    # ========================================================
     # PARSE XML
-    # --------------------------------------------------------
+    # ========================================================
 
     try:
 
@@ -140,15 +197,15 @@ def scan_target(
             process.stdout
         )
 
-    except ET.ParseError:
+    except ET.ParseError as error:
 
         raise RuntimeError(
-            "Nmap returned an invalid scan result."
+            f"Nmap returned invalid XML output: {error}"
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # RESULTS
-    # --------------------------------------------------------
+    # ========================================================
 
     results = []
 
@@ -161,15 +218,27 @@ def scan_target(
 
         for port in ports_element.findall("port"):
 
+            # ------------------------------------------------
+            # PROTOCOL
+            # ------------------------------------------------
+
             protocol = port.get(
                 "protocol",
                 ""
             )
 
+            # ------------------------------------------------
+            # PORT NUMBER
+            # ------------------------------------------------
+
             port_number = port.get(
                 "portid",
                 ""
             )
+
+            # ------------------------------------------------
+            # STATE
+            # ------------------------------------------------
 
             state_element = port.find("state")
 
@@ -181,15 +250,19 @@ def scan_target(
                 ""
             )
 
-            # Only return ports that are actually open.
+            # Only return open ports
             if state != "open":
                 continue
 
-            service_element = port.find("service")
+            # ------------------------------------------------
+            # SERVICE
+            # ------------------------------------------------
 
             service = ""
             product = ""
             version = ""
+
+            service_element = port.find("service")
 
             if service_element is not None:
 
@@ -208,15 +281,23 @@ def scan_target(
                     ""
                 )
 
+            # ------------------------------------------------
+            # CONVERT PORT
+            # ------------------------------------------------
+
             try:
 
                 port_number = int(
                     port_number
                 )
 
-            except ValueError:
+            except (ValueError, TypeError):
 
                 continue
+
+            # ------------------------------------------------
+            # ADD RESULT
+            # ------------------------------------------------
 
             results.append({
 
@@ -233,9 +314,9 @@ def scan_target(
                 "version": version
             })
 
-    # --------------------------------------------------------
+    # ========================================================
     # SORT RESULTS
-    # --------------------------------------------------------
+    # ========================================================
 
     results.sort(
         key=lambda result: (

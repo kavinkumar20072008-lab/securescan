@@ -3,6 +3,8 @@ import json
 import os
 from datetime import datetime
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 # ============================================================
 # DATABASE LOCATION
@@ -30,6 +32,11 @@ def get_connection():
 
     connection.row_factory = sqlite3.Row
 
+    # Enable foreign keys
+    connection.execute(
+        "PRAGMA foreign_keys = ON"
+    )
+
     return connection
 
 
@@ -41,10 +48,35 @@ def init_database():
 
     connection = get_connection()
 
+    # ========================================================
+    # USERS TABLE
+    # ========================================================
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            username TEXT NOT NULL UNIQUE,
+
+            email TEXT NOT NULL UNIQUE,
+
+            password_hash TEXT NOT NULL,
+
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    # ========================================================
+    # SCANS TABLE
+    # ========================================================
+
     connection.execute("""
         CREATE TABLE IF NOT EXISTS scans (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER,
 
             target TEXT NOT NULL,
 
@@ -56,9 +88,37 @@ def init_database():
 
             results TEXT NOT NULL,
 
-            recommendations TEXT NOT NULL
+            recommendations TEXT NOT NULL,
+
+            FOREIGN KEY (user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE
         )
     """)
+
+    # ========================================================
+    # DATABASE MIGRATION
+    # ========================================================
+    #
+    # If your old scans table was created before login,
+    # add user_id automatically.
+    #
+
+    columns = connection.execute(
+        "PRAGMA table_info(scans)"
+    ).fetchall()
+
+    column_names = [
+        column["name"]
+        for column in columns
+    ]
+
+    if "user_id" not in column_names:
+
+        connection.execute("""
+            ALTER TABLE scans
+            ADD COLUMN user_id INTEGER
+        """)
 
     connection.commit()
 
@@ -66,10 +126,156 @@ def init_database():
 
 
 # ============================================================
+# CREATE USER
+# ============================================================
+
+def create_user(
+    username,
+    email,
+    password
+):
+
+    connection = get_connection()
+
+    password_hash = generate_password_hash(
+        password
+    )
+
+    try:
+
+        cursor = connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                email,
+                password_hash,
+                created_at
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+
+            (
+                username,
+                email,
+                password_hash,
+                datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+            )
+        )
+
+        connection.commit()
+
+        return cursor.lastrowid
+
+    except sqlite3.IntegrityError:
+
+        return None
+
+    finally:
+
+        connection.close()
+
+
+# ============================================================
+# AUTHENTICATE USER
+# ============================================================
+
+def authenticate_user(
+    username,
+    password
+):
+
+    connection = get_connection()
+
+    user = connection.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE username = ?
+        """,
+
+        (username,)
+    ).fetchone()
+
+    connection.close()
+
+    if user is None:
+
+        return None
+
+    try:
+
+        password_valid = check_password_hash(
+            user["password_hash"],
+            password
+        )
+
+    except Exception:
+
+        return None
+
+    if not password_valid:
+
+        return None
+
+    return {
+
+        "id": user["id"],
+
+        "username": user["username"],
+
+        "email": user["email"]
+    }
+
+
+# ============================================================
+# GET USER
+# ============================================================
+
+def get_user(user_id):
+
+    connection = get_connection()
+
+    user = connection.execute(
+        """
+        SELECT
+            id,
+            username,
+            email,
+            created_at
+        FROM users
+        WHERE id = ?
+        """,
+
+        (user_id,)
+    ).fetchone()
+
+    connection.close()
+
+    if user is None:
+
+        return None
+
+    return {
+
+        "id": user["id"],
+
+        "username": user["username"],
+
+        "email": user["email"],
+
+        "created_at": user["created_at"]
+    }
+
+
+# ============================================================
 # SAVE SCAN
 # ============================================================
 
 def save_scan(
+    user_id,
     target,
     results,
     risk_level,
@@ -82,6 +288,7 @@ def save_scan(
         """
         INSERT INTO scans
         (
+            user_id,
             target,
             date,
             risk_level,
@@ -89,10 +296,12 @@ def save_scan(
             results,
             recommendations
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
 
         (
+            user_id,
+
             target,
 
             datetime.now().strftime(
@@ -103,7 +312,9 @@ def save_scan(
 
             len(results),
 
-            json.dumps(results),
+            json.dumps(
+                results
+            ),
 
             json.dumps(
                 recommendations
@@ -117,20 +328,31 @@ def save_scan(
 
 
 # ============================================================
-# GET SCAN HISTORY
+# GET USER SCAN HISTORY
 # ============================================================
 
-def get_scan_history():
+def get_scan_history(user_id):
 
     connection = get_connection()
 
     scans = connection.execute(
         """
-        SELECT *
+        SELECT
+            id,
+            user_id,
+            target,
+            date,
+            risk_level,
+            open_ports,
+            results,
+            recommendations
         FROM scans
+        WHERE user_id = ?
         ORDER BY id DESC
         LIMIT 50
-        """
+        """,
+
+        (user_id,)
     ).fetchall()
 
     connection.close()
@@ -139,46 +361,93 @@ def get_scan_history():
 
     for scan in scans:
 
-        history.append({
+        try:
 
-            "id": scan["id"],
-
-            "target": scan["target"],
-
-            "date": scan["date"],
-
-            "risk_level": scan["risk_level"],
-
-            "open_ports": scan["open_ports"],
-
-            "results": json.loads(
+            results = json.loads(
                 scan["results"]
-            ),
+            )
 
-            "recommendations": json.loads(
+        except (
+            json.JSONDecodeError,
+            TypeError
+        ):
+
+            results = []
+
+        try:
+
+            recommendations = json.loads(
                 scan["recommendations"]
             )
+
+        except (
+            json.JSONDecodeError,
+            TypeError
+        ):
+
+            recommendations = []
+
+        history.append({
+
+            "id":
+                scan["id"],
+
+            "user_id":
+                scan["user_id"],
+
+            "target":
+                scan["target"],
+
+            "date":
+                scan["date"],
+
+            "risk_level":
+                scan["risk_level"],
+
+            "open_ports":
+                scan["open_ports"],
+
+            "results":
+                results,
+
+            "recommendations":
+                recommendations
         })
 
     return history
 
 
 # ============================================================
-# GET INDIVIDUAL SCAN
+# GET INDIVIDUAL USER SCAN
 # ============================================================
 
-def get_scan(scan_id):
+def get_scan(
+    scan_id,
+    user_id
+):
 
     connection = get_connection()
 
     scan = connection.execute(
         """
-        SELECT *
+        SELECT
+            id,
+            user_id,
+            target,
+            date,
+            risk_level,
+            open_ports,
+            results,
+            recommendations
         FROM scans
         WHERE id = ?
+        AND user_id = ?
         """,
 
-        (scan_id,)
+        (
+            scan_id,
+            user_id
+        )
     ).fetchone()
 
     connection.close()
@@ -187,30 +456,62 @@ def get_scan(scan_id):
 
         return None
 
-    return {
+    try:
 
-        "id": scan["id"],
-
-        "target": scan["target"],
-
-        "date": scan["date"],
-
-        "risk_level": scan["risk_level"],
-
-        "open_ports": scan["open_ports"],
-
-        "results": json.loads(
+        results = json.loads(
             scan["results"]
-        ),
+        )
 
-        "recommendations": json.loads(
+    except (
+        json.JSONDecodeError,
+        TypeError
+    ):
+
+        results = []
+
+    try:
+
+        recommendations = json.loads(
             scan["recommendations"]
         )
+
+    except (
+        json.JSONDecodeError,
+        TypeError
+    ):
+
+        recommendations = []
+
+    return {
+
+        "id":
+            scan["id"],
+
+        "user_id":
+            scan["user_id"],
+
+        "target":
+            scan["target"],
+
+        "date":
+            scan["date"],
+
+        "risk_level":
+            scan["risk_level"],
+
+        "open_ports":
+            scan["open_ports"],
+
+        "results":
+            results,
+
+        "recommendations":
+            recommendations
     }
 
 
 # ============================================================
-# INITIALIZE DATABASE ON STARTUP
+# INITIALIZE DATABASE
 # ============================================================
 
 init_database()

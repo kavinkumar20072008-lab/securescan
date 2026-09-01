@@ -1,0 +1,13 @@
+services:
+  securescan:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: securescan-app
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: "change-this-to-a-random-secret-key"
+    volumes:
+      - ./securescan.db:/app/securescan.db
+    restart: unless-stopped

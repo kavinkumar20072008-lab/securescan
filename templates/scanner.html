@@ -2,24 +2,37 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Port Scanner - SecureScan</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
 </head>
+
 
 <body>
 
 <div class="app">
+
 
     <!-- =====================================================
          SIDEBAR
     ====================================================== -->
 
     <aside class="sidebar">
+
+
+        <!-- BRAND -->
 
         <div class="brand">
 
@@ -28,43 +41,74 @@
             </div>
 
             <div>
-                <h2>SECURESCAN</h2>
-                <span>NETWORK SECURITY</span>
+
+                <h2>
+                    SECURESCAN
+                </h2>
+
+                <span>
+                    NETWORK SECURITY
+                </span>
+
             </div>
 
         </div>
 
 
+        <!-- NAVIGATION -->
+
         <nav class="navigation">
+
 
             <p class="nav-title">
                 MAIN
             </p>
 
 
-            <a href="{{ url_for('home') }}"
-               class="nav-item">
+            <!-- DASHBOARD -->
+
+            <a
+                href="{{ url_for('home') }}"
+                class="nav-item"
+            >
 
                 <span>▦</span>
-                <span>Dashboard</span>
+
+                <span>
+                    Dashboard
+                </span>
 
             </a>
 
 
-            <a href="{{ url_for('scanner') }}"
-               class="nav-item active">
+            <!-- PORT SCANNER -->
+
+            <a
+                href="{{ url_for('scanner') }}"
+                class="nav-item active"
+            >
 
                 <span>⌕</span>
-                <span>Port Scanner</span>
+
+                <span>
+                    Port Scanner
+                </span>
 
             </a>
 
 
-            <a href="{{ url_for('history') }}"
-               class="nav-item">
+            <!-- HISTORY -->
+
+            <a
+                href="{{ url_for('history') }}"
+                class="nav-item"
+            >
 
                 <span>◷</span>
-                <span>Scan History</span>
+
+                <span>
+                    Scan History
+                </span>
 
             </a>
 
@@ -74,40 +118,68 @@
             </p>
 
 
-            <a href="{{ url_for('reports') }}"
-               class="nav-item">
+            <!-- REPORTS -->
+
+            <a
+                href="{{ url_for('reports') }}"
+                class="nav-item"
+            >
 
                 <span>▤</span>
-                <span>Reports</span>
+
+                <span>
+                    Reports
+                </span>
 
             </a>
 
 
-            <a href="{{ url_for('settings') }}"
-               class="nav-item">
+            <!-- SETTINGS -->
+
+            <a
+                href="{{ url_for('settings') }}"
+                class="nav-item"
+            >
 
                 <span>⚙</span>
-                <span>Settings</span>
+
+                <span>
+                    Settings
+                </span>
 
             </a>
 
 
-            <a href="{{ url_for('about') }}"
-               class="nav-item">
+            <!-- ABOUT -->
+
+            <a
+                href="{{ url_for('about') }}"
+                class="nav-item"
+            >
 
                 <span>ⓘ</span>
-                <span>About</span>
+
+                <span>
+                    About
+                </span>
 
             </a>
+
 
         </nav>
 
 
+        <!-- =================================================
+             SIDEBAR BOTTOM
+        ================================================== -->
+
         <div class="sidebar-bottom">
+
 
             <div class="system-status">
 
                 <span class="status-dot"></span>
+
 
                 <div>
 
@@ -123,7 +195,33 @@
 
             </div>
 
+
         </div>
+
+
+        <!-- =================================================
+             LOGOUT
+        ================================================== -->
+
+        <div class="sidebar-logout">
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="logout-btn"
+            >
+
+                <span>
+                    ↪
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
 
     </aside>
 
@@ -141,15 +239,18 @@
 
         <header class="topbar">
 
+
             <div>
 
                 <span class="breadcrumb">
                     SECURITY / PORT SCANNER
                 </span>
 
+
                 <h1>
                     Network Port Scanner
                 </h1>
+
 
                 <p>
                     Scan an authorized IP address or hostname
@@ -169,6 +270,7 @@
 
             </div>
 
+
         </header>
 
 
@@ -178,7 +280,11 @@
 
         <section class="scanner-card">
 
+
+            <!-- HEADER -->
+
             <div class="scanner-header">
+
 
                 <div>
 
@@ -186,9 +292,11 @@
                         NMAP SCANNER
                     </span>
 
+
                     <h2>
                         Start Network Scan
                     </h2>
+
 
                     <p>
                         Enter a target to identify open ports
@@ -202,6 +310,7 @@
                     ⌁
                 </div>
 
+
             </div>
 
 
@@ -213,13 +322,17 @@
                 method="POST"
                 action="{{ url_for('scanner') }}"
                 class="scan-form"
+                id="scanForm"
             >
 
+
                 <div class="input-wrapper">
+
 
                     <span class="input-icon">
                         ◉
                     </span>
+
 
                     <input
                         type="text"
@@ -231,21 +344,26 @@
                         required
                     >
 
+
                 </div>
 
 
                 <button
                     type="submit"
                     class="scan-button"
+                    id="scanButton"
                 >
 
                     <span id="scanIcon">
                         ⌕
                     </span>
 
-                    START SCAN
+                    <span id="scanButtonText">
+                        START SCAN
+                    </span>
 
                 </button>
+
 
             </form>
 
@@ -256,21 +374,35 @@
 
             <div class="scan-info">
 
-                <span>●</span>
+
+                <span>
+                    ●
+                </span>
+
 
                 NMAP ENGINE READY
 
-                <span class="separator">|</span>
+
+                <span class="separator">
+                    |
+                </span>
+
 
                 Scan Type:
+
 
                 <strong>
                     {{ scan_type|capitalize }}
                 </strong>
 
-                <span class="separator">|</span>
+
+                <span class="separator">
+                    |
+                </span>
+
 
                 Service Detection:
+
 
                 {% if service_detection %}
 
@@ -286,6 +418,7 @@
 
                 {% endif %}
 
+
             </div>
 
 
@@ -297,17 +430,21 @@
 
             <div class="scan-error">
 
+
                 <strong>
                     Scan Failed
                 </strong>
+
 
                 <p>
                     {{ error_message }}
                 </p>
 
+
             </div>
 
             {% endif %}
+
 
         </section>
 
@@ -325,11 +462,13 @@
 
             <div class="panel-header">
 
+
                 <div>
 
                     <span class="section-label">
                         SCAN RESULTS
                     </span>
+
 
                     <h2>
                         Detected Network Services
@@ -341,9 +480,11 @@
                 <span class="result-count">
 
                     {{ results|length }}
+
                     OPEN PORT{% if results|length != 1 %}S{% endif %}
 
                 </span>
+
 
             </div>
 
@@ -354,11 +495,15 @@
 
             <div class="report-summary">
 
+
+                <!-- TARGET -->
+
                 <div class="report-stat">
 
                     <span>
                         TARGET
                     </span>
+
 
                     <strong>
                         {{ target }}
@@ -367,11 +512,14 @@
                 </div>
 
 
+                <!-- OPEN PORTS -->
+
                 <div class="report-stat">
 
                     <span>
                         OPEN PORTS
                     </span>
+
 
                     <strong>
                         {{ results|length }}
@@ -380,11 +528,14 @@
                 </div>
 
 
+                <!-- RISK -->
+
                 <div class="report-stat">
 
                     <span>
                         RISK LEVEL
                     </span>
+
 
                     <strong>
                         {{ risk_level }}
@@ -393,17 +544,21 @@
                 </div>
 
 
+                <!-- SCAN TYPE -->
+
                 <div class="report-stat">
 
                     <span>
                         SCAN TYPE
                     </span>
 
+
                     <strong>
                         {{ scan_type|capitalize }}
                     </strong>
 
                 </div>
+
 
             </div>
 
@@ -414,7 +569,9 @@
 
             <div class="table-container">
 
+
                 <table>
+
 
                     <thead>
 
@@ -451,9 +608,14 @@
 
                     <tbody>
 
+
                         {% for result in results %}
 
+
                         <tr>
+
+
+                            <!-- PORT -->
 
                             <td>
 
@@ -464,10 +626,16 @@
                             </td>
 
 
+                            <!-- PROTOCOL -->
+
                             <td>
+
                                 {{ result.protocol|upper }}
+
                             </td>
 
+
+                            <!-- STATE -->
 
                             <td>
 
@@ -482,31 +650,48 @@
                             </td>
 
 
+                            <!-- SERVICE -->
+
                             <td>
 
                                 <span class="service-name">
+
                                     {{ result.service or "Unknown" }}
+
                                 </span>
 
                             </td>
 
 
+                            <!-- PRODUCT -->
+
                             <td>
+
                                 {{ result.product or "—" }}
+
                             </td>
 
+
+                            <!-- VERSION -->
 
                             <td>
+
                                 {{ result.version or "—" }}
+
                             </td>
+
 
                         </tr>
 
+
                         {% endfor %}
+
 
                     </tbody>
 
+
                 </table>
+
 
             </div>
 
@@ -520,11 +705,13 @@
 
                 <div class="panel-header">
 
+
                     <div>
 
                         <span class="section-label">
                             SECURITY ANALYSIS
                         </span>
+
 
                         <h2>
                             Security Recommendations
@@ -532,16 +719,21 @@
 
                     </div>
 
+
                 </div>
 
 
                 {% if recommendations %}
 
+
                 <div class="recommendations">
+
 
                     <ul>
 
+
                         {% for recommendation in recommendations %}
+
 
                         <li>
 
@@ -549,19 +741,25 @@
                                 ›
                             </span>
 
+
                             <div>
                                 {{ recommendation }}
                             </div>
 
                         </li>
 
+
                         {% endfor %}
+
 
                     </ul>
 
+
                 </div>
 
+
                 {% else %}
+
 
                 <div class="empty-recommendations">
 
@@ -572,12 +770,15 @@
 
                 </div>
 
+
                 {% endif %}
+
 
             </div>
 
 
         </section>
+
 
         {% endif %}
 
@@ -588,26 +789,34 @@
 
         {% if not results and not error_message and target %}
 
+
         <section class="panel">
 
+
             <div class="empty-state">
+
 
                 <div class="empty-icon">
                     ✓
                 </div>
 
+
                 <h3>
                     No Open Ports Detected
                 </h3>
+
 
                 <p>
                     The scan completed successfully, but no open
                     ports were found on the target.
                 </p>
 
+
             </div>
 
+
         </section>
+
 
         {% endif %}
 
@@ -618,87 +827,152 @@
 
         <footer>
 
+
             <span>
                 SECURESCAN • NETWORK SECURITY TOOL
             </span>
 
+
             <span>
                 NMAP ENGINE • LOCAL INSTANCE
             </span>
+
 
         </footer>
 
 
     </main>
 
+
 </div>
 
 
 <!-- =========================================================
-     SCANNING TIMER
+     SCAN TIMER / BUTTON CONTROL
 ========================================================= -->
 
 <script>
 
-const scanForm = document.querySelector(".scan-form");
-const scanButton = document.querySelector(".scan-button");
+const scanForm =
+    document.getElementById("scanForm");
+
+const scanButton =
+    document.getElementById("scanButton");
+
+const scanIcon =
+    document.getElementById("scanIcon");
+
+const scanButtonText =
+    document.getElementById("scanButtonText");
+
 
 if (scanForm && scanButton) {
 
-    scanForm.addEventListener("submit", function () {
 
-        /* Prevent multiple clicks */
-
-        scanButton.disabled = true;
-
-        scanButton.classList.add("scanning");
+    scanForm.addEventListener(
+        "submit",
+        function () {
 
 
-        /* Starting time */
+            /*
+             * Prevent the user from
+             * submitting multiple scans.
+             */
 
-        let seconds = 0;
-
-
-        /* Initial button text */
-
-        scanButton.innerHTML =
-            '<span id="scanIcon">◌</span> SCANNING... 00:00';
+            scanButton.disabled = true;
 
 
-        /* Start timer */
-
-        const timer = setInterval(function () {
-
-            seconds++;
+            scanButton.classList.add(
+                "scanning"
+            );
 
 
-            const minutes =
-                Math.floor(seconds / 60);
+            /*
+             * Start timer.
+             */
+
+            let seconds = 0;
 
 
-            const remainingSeconds =
-                seconds % 60;
+            function updateTimer() {
 
 
-            const formattedTime =
-                String(minutes).padStart(2, "0")
-                + ":"
-                + String(remainingSeconds).padStart(2, "0");
+                const minutes =
+                    Math.floor(seconds / 60);
 
 
-            scanButton.innerHTML =
-                '<span id="scanIcon">◌</span> SCANNING... '
-                + formattedTime;
+                const remainingSeconds =
+                    seconds % 60;
 
 
-        }, 1000);
+                const formattedTime =
 
-    });
+                    String(minutes)
+                        .padStart(2, "0")
+
+                    +
+
+                    ":"
+
+                    +
+
+                    String(remainingSeconds)
+                        .padStart(2, "0");
+
+
+                scanIcon.textContent = "◌";
+
+
+                scanButtonText.textContent =
+                    "SCANNING... "
+                    + formattedTime;
+
+
+            }
+
+
+            /*
+             * Display immediately.
+             */
+
+            updateTimer();
+
+
+            /*
+             * Update every second.
+             */
+
+            const timer =
+                setInterval(
+                    function () {
+
+                        seconds++;
+
+                        updateTimer();
+
+                    },
+                    1000
+                );
+
+
+            /*
+             * Store timer reference.
+             */
+
+            scanForm.dataset.timer =
+                timer;
+
+
+        }
+    );
+
 
 }
+
 
 </script>
 
 
 </body>
+
 </html>

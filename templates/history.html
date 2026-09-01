@@ -2,215 +2,608 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Scan History - SecureScan</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
 </head>
+
 
 <body>
 
 <div class="app">
 
-    <!-- SIDEBAR -->
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
     <aside class="sidebar">
 
-        <nav class="navigation">
 
-            <p class="nav-title">MAIN</p>
+        <!-- BRAND -->
 
-            <a href="{{ url_for('home') }}" class="nav-item">
-                <span>▣</span>
-                Dashboard
-            </a>
+        <div class="brand">
 
-            <a href="{{ url_for('scanner') }}" class="nav-item">
-    <span>⌕</span>
-    <span>Port Scanner</span>
-</a>
+            <div class="brand-icon">
+                ◈
+            </div>
 
-            <a href="{{ url_for('history') }}" class="nav-item active">
-                <span>◷</span>
-                Scan History
-            </a>
+            <div>
 
-            <p class="nav-title">MANAGEMENT</p>
+                <h2>
+                    SECURESCAN
+                </h2>
 
-            <a href="{{ url_for('reports') }}" class="nav-item">
-                <span>▤</span>
-                Reports
-            </a>
+                <span>
+                    NETWORK SECURITY
+                </span>
 
-            <a href="{{ url_for('settings') }}" class="nav-item">
-                <span>⚙</span>
-                Settings
-            </a>
-
-            <a href="{{ url_for('about') }}" class="nav-item">
-                <span>ⓘ</span>
-                About
-            </a>
-
-        </nav>
-
-        <div class="sidebar-bottom">
-
-            <div class="system-status">
-                <span class="status-dot"></span>
-
-                <div>
-                    <strong>System Ready</strong>
-                    <small>Nmap engine available</small>
-                </div>
             </div>
 
         </div>
 
+
+        <!-- NAVIGATION -->
+
+        <nav class="navigation">
+
+
+            <p class="nav-title">
+                MAIN
+            </p>
+
+
+            <!-- DASHBOARD -->
+
+            <a
+                href="{{ url_for('home') }}"
+                class="nav-item"
+            >
+
+                <span>▦</span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <!-- PORT SCANNER -->
+
+            <a
+                href="{{ url_for('scanner') }}"
+                class="nav-item"
+            >
+
+                <span>⌕</span>
+
+                <span>
+                    Port Scanner
+                </span>
+
+            </a>
+
+
+            <!-- SCAN HISTORY -->
+
+            <a
+                href="{{ url_for('history') }}"
+                class="nav-item active"
+            >
+
+                <span>◷</span>
+
+                <span>
+                    Scan History
+                </span>
+
+            </a>
+
+
+            <p class="nav-title">
+                MANAGEMENT
+            </p>
+
+
+            <!-- REPORTS -->
+
+            <a
+                href="{{ url_for('reports') }}"
+                class="nav-item"
+            >
+
+                <span>▤</span>
+
+                <span>
+                    Reports
+                </span>
+
+            </a>
+
+
+            <!-- SETTINGS -->
+
+            <a
+                href="{{ url_for('settings') }}"
+                class="nav-item"
+            >
+
+                <span>⚙</span>
+
+                <span>
+                    Settings
+                </span>
+
+            </a>
+
+
+            <!-- ABOUT -->
+
+            <a
+                href="{{ url_for('about') }}"
+                class="nav-item"
+            >
+
+                <span>ⓘ</span>
+
+                <span>
+                    About
+                </span>
+
+            </a>
+
+
+        </nav>
+
+
+        <!-- =================================================
+             SIDEBAR STATUS
+        ================================================== -->
+
+        <div class="sidebar-bottom">
+
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+
+                <div>
+
+                    <strong>
+                        System Ready
+                    </strong>
+
+
+                    <small>
+                        Nmap engine available
+                    </small>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================================
+             LOGOUT
+        ================================================== -->
+
+        <div class="sidebar-logout">
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="logout-btn"
+            >
+
+                <span>
+                    ↪
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
+
     </aside>
 
 
-    <!-- MAIN CONTENT -->
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
     <main class="main">
 
-        <header class="page-header">
+
+        <!-- =================================================
+             TOP BAR
+        ================================================== -->
+
+        <header class="topbar">
+
 
             <div>
-                <h1>Scan History</h1>
+
+                <span class="breadcrumb">
+                    SECURITY / SCAN HISTORY
+                </span>
+
+
+                <h1>
+                    Scan History
+                </h1>
+
 
                 <p>
                     Review your previous network security scans.
                 </p>
+
             </div>
 
-            <a href="{{ url_for('home') }}" class="scan-button">
-                + NEW SCAN
-            </a>
+
+            <div class="topbar-status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    HISTORY READY
+                </span>
+
+            </div>
+
 
         </header>
 
 
-        <!-- HISTORY CARD -->
+        <!-- =================================================
+             HISTORY CARD
+        ================================================== -->
+
         <section class="scanner-card history-card">
+
+
+            <!-- HEADER -->
 
             <div class="card-header">
 
+
                 <div>
-                    <h2>Recent Scans</h2>
+
+                    <span class="section-label">
+                        SCAN RECORDS
+                    </span>
+
+
+                    <h2>
+                        Recent Scans
+                    </h2>
+
 
                     <p>
-                        Your latest security scan results.
+                        Your previous network security scan results.
                     </p>
+
                 </div>
 
+
                 <div class="history-count">
-                    {{ history|length }} scans
+
+                    {{ history|length }}
+
+                    scan{% if history|length != 1 %}s{% endif %}
+
                 </div>
+
 
             </div>
 
 
             {% if history %}
 
-            <!-- TABLE -->
+
+            <!-- =================================================
+                 HISTORY TABLE
+            ================================================== -->
+
             <div class="history-table-wrapper">
 
+
                 <table class="history-table">
+
 
                     <thead>
 
                         <tr>
-                            <th>Target</th>
-                            <th>Date</th>
-                            <th>Open Ports</th>
-                            <th>Risk Level</th>
+
+                            <th>
+                                TARGET
+                            </th>
+
+                            <th>
+                                DATE
+                            </th>
+
+                            <th>
+                                OPEN PORTS
+                            </th>
+
+                            <th>
+                                RISK LEVEL
+                            </th>
+
+                            <th>
+                                ACTION
+                            </th>
+
                         </tr>
 
                     </thead>
 
+
                     <tbody>
+
 
                         {% for scan in history %}
 
+
                         <tr>
 
+
+                            <!-- TARGET -->
+
                             <td>
+
                                 <div class="target-cell">
 
-                                    <span class="target-icon">◉</span>
+
+                                    <span class="target-icon">
+                                        ◉
+                                    </span>
+
 
                                     <strong>
                                         {{ scan.target }}
                                     </strong>
 
+
                                 </div>
+
                             </td>
 
+
+                            <!-- DATE -->
 
                             <td class="date-cell">
+
                                 {{ scan.date }}
+
                             </td>
 
+
+                            <!-- OPEN PORTS -->
 
                             <td>
 
                                 <span class="port-count">
+
                                     {{ scan.open_ports }}
+
                                 </span>
 
                             </td>
 
+
+                            <!-- RISK LEVEL -->
 
                             <td>
 
-                                <span class="risk-badge risk-{{ scan.risk_level|lower }}">
+
+                                <span
+                                    class="risk-badge risk-{{ scan.risk_level|lower }}"
+                                >
+
                                     {{ scan.risk_level }}
+
                                 </span>
+
 
                             </td>
 
+
+                            <!-- ACTION -->
+
+                            <td>
+
+
+                                {% if scan.id %}
+
+                                <a
+                                    href="{{ url_for('report_details', scan_id=scan.id) }}"
+                                    class="history-view-btn"
+                                >
+
+                                    VIEW
+
+                                </a>
+
+                                {% else %}
+
+                                <span class="history-unavailable">
+                                    —
+                                </span>
+
+                                {% endif %}
+
+
+                            </td>
+
+
                         </tr>
+
 
                         {% endfor %}
 
+
                     </tbody>
 
+
                 </table>
+
 
             </div>
 
 
             {% else %}
 
-            <!-- EMPTY STATE -->
+
+            <!-- =================================================
+                 EMPTY HISTORY
+            ================================================== -->
 
             <div class="empty-history">
+
 
                 <div class="empty-icon">
                     ◷
                 </div>
 
-                <h3>No Scan History</h3>
+
+                <h3>
+                    No Scan History
+                </h3>
+
 
                 <p>
                     You haven't performed any scans yet.
                 </p>
 
-                <a href="{{ url_for('home') }}" class="scan-button">
+
+                <a
+                    href="{{ url_for('scanner') }}"
+                    class="scan-button"
+                >
+
                     START A SCAN
+
                 </a>
+
 
             </div>
 
+
             {% endif %}
+
 
         </section>
 
+
+        <!-- =================================================
+             QUICK ACTION
+        ================================================== -->
+
+        {% if history %}
+
+
+        <section class="scanner-card">
+
+
+            <div class="scanner-header">
+
+
+                <div>
+
+                    <span class="section-label">
+                        NETWORK ANALYSIS
+                    </span>
+
+
+                    <h2>
+                        Run Another Scan
+                    </h2>
+
+
+                    <p>
+                        Perform a new authorized network security scan.
+                    </p>
+
+                </div>
+
+
+                <div class="scanner-icon">
+                    ⌁
+                </div>
+
+
+            </div>
+
+
+            <div class="settings-actions">
+
+
+                <a
+                    href="{{ url_for('scanner') }}"
+                    class="scan-button"
+                >
+
+                    OPEN PORT SCANNER
+
+                </a>
+
+
+            </div>
+
+
+        </section>
+
+
+        {% endif %}
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer>
+
+
+            <span>
+                SECURESCAN • NETWORK SECURITY TOOL
+            </span>
+
+
+            <span>
+                NMAP ENGINE • LOCAL INSTANCE
+            </span>
+
+
+        </footer>
+
+
     </main>
+
 
 </div>
 
+
 </body>
+
 </html>

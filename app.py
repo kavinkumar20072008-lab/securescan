@@ -1,15 +1,26 @@
 import os
 import ipaddress
 import socket
+import traceback
 
-from flask import Flask, render_template, request, session
+from flask import (
+    Flask,
+    render_template,
+    request,
+    session,
+    redirect,
+    url_for
+)
 
 from scanner.nmap_scanner import scan_target
 
 from database import (
     save_scan,
     get_scan_history,
-    get_scan
+    get_scan,
+    create_user,
+    authenticate_user,
+    get_user
 )
 
 
@@ -19,10 +30,16 @@ from database import (
 
 app = Flask(__name__)
 
-# Never hard-code the production secret key.
 app.secret_key = os.environ.get(
     "SECRET_KEY",
     "development-secret-key-change-this"
+)
+
+# Browser session security
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False
 )
 
 
@@ -30,13 +47,6 @@ app.secret_key = os.environ.get(
 # SECURITY CONFIGURATION
 # ============================================================
 
-# Optional allowlist for production.
-#
-# Example environment variable:
-#
-# ALLOWED_TARGETS=scanme.nmap.org,192.168.1.10
-#
-# Leave empty during local development.
 ALLOWED_TARGETS = {
     target.strip().lower()
     for target in os.environ.get(
@@ -47,10 +57,47 @@ ALLOWED_TARGETS = {
 }
 
 
+# ============================================================
+# LOGIN PROTECTION
+# ============================================================
+
+def login_required():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return False
+
+    try:
+
+        # Verify that the user still exists
+        user = get_user(user_id)
+
+        if user is None:
+
+            session.clear()
+
+            return False
+
+        return True
+
+    except Exception as e:
+
+        print("========== LOGIN CHECK ERROR ==========")
+        print(f"ERROR: {e}")
+        traceback.print_exc()
+        print("=======================================")
+
+        session.clear()
+
+        return False
+
+
+# ============================================================
+# TARGET VALIDATION
+# ============================================================
+
 def is_valid_target(target):
-    """
-    Basic validation for IP addresses and hostnames.
-    """
 
     if not target:
         return False
@@ -58,8 +105,6 @@ def is_valid_target(target):
     if len(target) > 253:
         return False
 
-    # Reject characters that should never appear
-    # in a hostname/IP target.
     allowed_characters = (
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -73,14 +118,18 @@ def is_valid_target(target):
     ):
         return False
 
-    # Try IP address validation.
+    # Check IP address
     try:
+
         ipaddress.ip_address(target)
+
         return True
+
     except ValueError:
+
         pass
 
-    # Hostname validation.
+    # Check hostname
     try:
 
         socket.gethostbyname(target)
@@ -93,12 +142,9 @@ def is_valid_target(target):
 
 
 def is_target_allowed(target):
-    """
-    If ALLOWED_TARGETS is configured, only those targets
-    can be scanned.
-    """
 
     if not ALLOWED_TARGETS:
+
         return True
 
     return target.lower() in ALLOWED_TARGETS
@@ -115,10 +161,18 @@ def analyze_security(results):
     recommendations = []
 
     risky_ports = {
-        21: "FTP can expose credentials. Consider using SFTP instead.",
-        23: "Telnet is insecure because it sends data without encryption.",
-        3389: "RDP should be restricted to trusted networks or protected with a VPN.",
-        445: "SMB should not be unnecessarily exposed to untrusted networks."
+
+        21:
+        "FTP can expose credentials. Consider using SFTP instead.",
+
+        23:
+        "Telnet is insecure because it sends data without encryption.",
+
+        3389:
+        "RDP should be restricted to trusted networks or protected with a VPN.",
+
+        445:
+        "SMB should not be unnecessarily exposed to untrusted networks."
     }
 
     for result in results:
@@ -177,7 +231,11 @@ def analyze_security(results):
 
 def get_dashboard_stats():
 
-    history_data = get_scan_history()
+    user_id = session["user_id"]
+
+    history_data = get_scan_history(
+        user_id
+    )
 
     total_scans = len(history_data)
 
@@ -226,27 +284,277 @@ def get_dashboard_stats():
     else:
 
         latest_target = "—"
+
         latest_risk = "—"
+
         latest_date = "—"
 
     return {
 
-        "total_scans": total_scans,
+        "total_scans":
+        total_scans,
 
-        "total_open_ports": total_open_ports,
+        "total_open_ports":
+        total_open_ports,
 
-        "high_risk": high_risk,
+        "high_risk":
+        high_risk,
 
-        "medium_risk": medium_risk,
+        "medium_risk":
+        medium_risk,
 
-        "low_risk": low_risk,
+        "low_risk":
+        low_risk,
 
-        "latest_target": latest_target,
+        "latest_target":
+        latest_target,
 
-        "latest_risk": latest_risk,
+        "latest_risk":
+        latest_risk,
 
-        "latest_date": latest_date
+        "latest_date":
+        latest_date
     }
+
+
+# ============================================================
+# REGISTER
+# ============================================================
+
+@app.route(
+    "/register",
+    methods=["GET", "POST"]
+)
+def register():
+
+    # Already logged in
+    if login_required():
+
+        return redirect(
+            url_for("home")
+        )
+
+    error_message = ""
+
+    if request.method == "POST":
+
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if (
+            not username
+            or not email
+            or not password
+            or not confirm_password
+        ):
+
+            error_message = (
+                "Please fill in all fields."
+            )
+
+        elif password != confirm_password:
+
+            error_message = (
+                "Passwords do not match."
+            )
+
+        elif len(username) < 3:
+
+            error_message = (
+                "Username must be at least 3 characters."
+            )
+
+        elif len(password) < 6:
+
+            error_message = (
+                "Password must be at least 6 characters."
+            )
+
+        else:
+
+            # ------------------------------------------------
+            # CREATE ACCOUNT
+            # ------------------------------------------------
+
+            try:
+
+                user_id = create_user(
+                    username,
+                    email,
+                    password
+                )
+
+                if user_id is None:
+
+                    error_message = (
+                        "Username or email already exists."
+                    )
+
+                else:
+
+                    # Registration successful
+                    return redirect(
+                        url_for("login")
+                    )
+
+            except Exception as e:
+
+                print(
+                    "========== REGISTER ERROR =========="
+                )
+
+                print(
+                    f"ERROR: {e}"
+                )
+
+                traceback.print_exc()
+
+                print(
+                    "===================================="
+                )
+
+                error_message = (
+                    "Registration failed. Please try again."
+                )
+
+    return render_template(
+        "register.html",
+        error_message=error_message
+    )
+
+
+# ============================================================
+# LOGIN
+# ============================================================
+
+@app.route(
+    "/login",
+    methods=["GET", "POST"]
+)
+def login():
+
+    if login_required():
+
+        return redirect(
+            url_for("home")
+        )
+
+    error_message = ""
+
+    if request.method == "POST":
+
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not username or not password:
+
+            error_message = (
+                "Please enter your username and password."
+            )
+
+        else:
+
+            try:
+
+                user = authenticate_user(
+                    username,
+                    password
+                )
+
+                if user is None:
+
+                    error_message = (
+                        "Invalid username or password."
+                    )
+
+                else:
+
+                    # ------------------------------------------------
+                    # CREATE SESSION
+                    # ------------------------------------------------
+
+                    session.clear()
+
+                    session["user_id"] = user["id"]
+
+                    session["username"] = user["username"]
+
+                    session["email"] = user["email"]
+
+                    return redirect(
+                        url_for("home")
+                    )
+
+            except Exception as e:
+
+                print(
+                    "========== LOGIN ERROR =========="
+                )
+
+                print(
+                    f"ERROR: {e}"
+                )
+
+                traceback.print_exc()
+
+                print(
+                    "================================="
+                )
+
+                error_message = (
+                    "Login failed. Please try again."
+                )
+
+    return render_template(
+        "login.html",
+        error_message=error_message
+    )
+
+
+# ============================================================
+# LOGOUT
+# ============================================================
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect(
+        url_for("login")
+    )
 
 
 # ============================================================
@@ -255,6 +563,12 @@ def get_dashboard_stats():
 
 @app.route("/")
 def home():
+
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
 
     dashboard_stats = get_dashboard_stats()
 
@@ -273,6 +587,12 @@ def home():
     methods=["GET", "POST"]
 )
 def scanner():
+
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
 
     results = []
 
@@ -350,20 +670,34 @@ def scanner():
                 )
 
                 # ------------------------------------------------
-                # SAVE RESULT
+                # SAVE SCAN
                 # ------------------------------------------------
 
+                user_id = session["user_id"]
+
                 save_scan(
+                    user_id,
                     target,
                     results,
                     risk_level,
                     recommendations
                 )
 
-            except Exception:
+            except Exception as e:
 
-                # Don't expose internal server/Nmap errors
-                # to public users.
+                print(
+                    "========== SCAN ERROR =========="
+                )
+
+                print(
+                    f"ERROR: {e}"
+                )
+
+                traceback.print_exc()
+
+                print(
+                    "================================"
+                )
 
                 results = []
 
@@ -372,13 +706,8 @@ def scanner():
                 recommendations = []
 
                 error_message = (
-                    "The scan could not be completed. "
-                    "Please verify the target and try again."
+                    f"Scan error: {e}"
                 )
-
-    # --------------------------------------------------------
-    # PAGE
-    # --------------------------------------------------------
 
     return render_template(
         "scanner.html",
@@ -406,7 +735,17 @@ def scanner():
 @app.route("/history")
 def history():
 
-    history_data = get_scan_history()
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
+
+    user_id = session["user_id"]
+
+    history_data = get_scan_history(
+        user_id
+    )
 
     return render_template(
         "history.html",
@@ -421,7 +760,17 @@ def history():
 @app.route("/reports")
 def reports():
 
-    history_data = get_scan_history()
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
+
+    user_id = session["user_id"]
+
+    history_data = get_scan_history(
+        user_id
+    )
 
     return render_template(
         "reports.html",
@@ -438,7 +787,21 @@ def reports():
 )
 def report_details(scan_id):
 
-    scan = get_scan(scan_id)
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
+
+    user_id = session["user_id"]
+
+    # Only allow this user to access
+    # their own report
+
+    scan = get_scan(
+        scan_id,
+        user_id
+    )
 
     if scan is None:
 
@@ -460,14 +823,18 @@ def report_details(scan_id):
 )
 def settings():
 
+    if not login_required():
+
+        return redirect(
+            url_for("login")
+        )
+
     if request.method == "POST":
 
         scan_type = request.form.get(
             "scan_type",
             "standard"
         )
-
-        # Only allow known scan types.
 
         if scan_type not in {
             "quick",
@@ -491,10 +858,11 @@ def settings():
             "settings.html",
 
             settings={
-                "scan_type": scan_type,
+                "scan_type":
+                scan_type,
 
                 "service_detection":
-                    service_detection
+                service_detection
             },
 
             saved=True
@@ -511,7 +879,6 @@ def settings():
             "service_detection",
             True
         )
-
     }
 
     return render_template(
