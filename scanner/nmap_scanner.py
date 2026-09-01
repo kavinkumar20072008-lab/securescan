@@ -24,13 +24,15 @@ def scan_target(
     Scan an authorized target using Nmap.
 
     Quick Scan:
-        - Nmap's common ports
-        - Fast
+        - Scans Nmap's 100 most common ports
+        - Uses TCP Connect Scan
+        - Does not require raw socket privileges
 
     Standard Scan:
-        - TCP ports 1-1000
+        - Scans TCP ports 1-1000
+        - Uses TCP Connect Scan
         - Optional service detection
-        - Faster than scanning 1-10000
+        - Uses lightweight version detection
 
     Returns:
         [
@@ -44,6 +46,22 @@ def scan_target(
             }
         ]
     """
+
+    # ========================================================
+    # VALIDATE TARGET
+    # ========================================================
+
+    if not target:
+        raise RuntimeError(
+            "No scan target was provided."
+        )
+
+    target = str(target).strip()
+
+    if not target:
+        raise RuntimeError(
+            "Scan target cannot be empty."
+        )
 
     # ========================================================
     # FIND NMAP
@@ -60,10 +78,12 @@ def scan_target(
     # NORMALIZE SCAN TYPE
     # ========================================================
 
-    scan_type = str(scan_type).lower().strip()
+    scan_type = str(
+        scan_type
+    ).lower().strip()
 
     # ========================================================
-    # BUILD COMMAND
+    # BUILD NMAP ARGUMENTS
     # ========================================================
 
     if scan_type == "quick":
@@ -72,10 +92,19 @@ def scan_target(
         # QUICK SCAN
         # ----------------------------------------------------
         #
+        # -sT = TCP Connect Scan
+        #
+        # Important:
+        # Render containers may not have permission to create
+        # raw sockets. TCP Connect Scan works without raw
+        # socket privileges.
+        #
+        # -F = Fast scan
         # Scans Nmap's 100 most common ports.
         #
 
         arguments = [
+            "-sT",
             "-T4",
             "-F"
         ]
@@ -86,12 +115,13 @@ def scan_target(
         # STANDARD SCAN
         # ----------------------------------------------------
         #
-        # Scan the first 1000 TCP ports.
+        # Scan TCP ports 1-1000.
         #
-        # This is considerably faster than 1-10000.
+        # -sT = TCP Connect Scan
         #
 
         arguments = [
+            "-sT",
             "-T4",
             "-p",
             "1-1000"
@@ -111,7 +141,8 @@ def scan_target(
     else:
 
         raise RuntimeError(
-            f"Invalid scan type: {scan_type}"
+            f"Invalid scan type: {scan_type}. "
+            "Use 'quick' or 'standard'."
         )
 
     # ========================================================
@@ -250,19 +281,24 @@ def scan_target(
                 ""
             )
 
-            # Only return open ports
+            # ------------------------------------------------
+            # ONLY RETURN OPEN PORTS
+            # ------------------------------------------------
+
             if state != "open":
                 continue
 
             # ------------------------------------------------
-            # SERVICE
+            # SERVICE INFORMATION
             # ------------------------------------------------
 
             service = ""
             product = ""
             version = ""
 
-            service_element = port.find("service")
+            service_element = port.find(
+                "service"
+            )
 
             if service_element is not None:
 
@@ -282,7 +318,7 @@ def scan_target(
                 )
 
             # ------------------------------------------------
-            # CONVERT PORT
+            # CONVERT PORT NUMBER
             # ------------------------------------------------
 
             try:
@@ -291,7 +327,10 @@ def scan_target(
                     port_number
                 )
 
-            except (ValueError, TypeError):
+            except (
+                ValueError,
+                TypeError
+            ):
 
                 continue
 
@@ -324,5 +363,9 @@ def scan_target(
             result["protocol"]
         )
     )
+
+    # ========================================================
+    # RETURN RESULTS
+    # ========================================================
 
     return results
