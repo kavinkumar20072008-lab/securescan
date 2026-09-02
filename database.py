@@ -182,10 +182,7 @@ def create_user(
 # AUTHENTICATE USER
 # ============================================================
 
-def authenticate_user(
-    username,
-    password
-):
+def authenticate_user(username, password):
 
     connection = get_connection()
 
@@ -195,41 +192,43 @@ def authenticate_user(
         FROM users
         WHERE username = ?
         """,
-
         (username,)
     ).fetchone()
+
+    print("========== LOGIN DEBUG ==========")
+    print("Username entered:", username)
+    print("User found:", user is not None)
+
+    if user is not None:
+        print("User ID:", user["id"])
+        print("Stored email:", user["email"])
+        print("Password hash exists:", bool(user["password_hash"]))
 
     connection.close()
 
     if user is None:
-
         return None
 
     try:
-
         password_valid = check_password_hash(
             user["password_hash"],
             password
         )
 
-    except Exception:
+        print("Password valid:", password_valid)
 
+    except Exception as error:
+        print("Password check error:", error)
         return None
 
     if not password_valid:
-
         return None
 
     return {
-
         "id": user["id"],
-
         "username": user["username"],
-
         "email": user["email"]
     }
-
-
 # ============================================================
 # GET USER
 # ============================================================
