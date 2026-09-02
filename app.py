@@ -35,26 +35,16 @@ app.secret_key = os.environ.get(
     "development-secret-key-change-this"
 )
 
-# Browser session security
+
+# ============================================================
+# SESSION SECURITY
+# ============================================================
+
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=False
+    SESSION_COOKIE_SECURE=True
 )
-
-
-# ============================================================
-# SECURITY CONFIGURATION
-# ============================================================
-
-ALLOWED_TARGETS = {
-    target.strip().lower()
-    for target in os.environ.get(
-        "ALLOWED_TARGETS",
-        ""
-    ).split(",")
-    if target.strip()
-}
 
 
 # ============================================================
@@ -70,7 +60,6 @@ def login_required():
 
     try:
 
-        # Verify that the user still exists
         user = get_user(user_id)
 
         if user is None:
@@ -81,12 +70,21 @@ def login_required():
 
         return True
 
-    except Exception as e:
+    except Exception as error:
 
-        print("========== LOGIN CHECK ERROR ==========")
-        print(f"ERROR: {e}")
+        print(
+            "========== LOGIN CHECK ERROR =========="
+        )
+
+        print(
+            f"ERROR: {error}"
+        )
+
         traceback.print_exc()
-        print("=======================================")
+
+        print(
+            "======================================="
+        )
 
         session.clear()
 
@@ -102,8 +100,14 @@ def is_valid_target(target):
     if not target:
         return False
 
+    target = target.strip()
+
     if len(target) > 253:
         return False
+
+    # --------------------------------------------------------
+    # Only allow normal IP / hostname characters
+    # --------------------------------------------------------
 
     allowed_characters = (
         "abcdefghijklmnopqrstuvwxyz"
@@ -118,7 +122,10 @@ def is_valid_target(target):
     ):
         return False
 
+    # --------------------------------------------------------
     # Check IP address
+    # --------------------------------------------------------
+
     try:
 
         ipaddress.ip_address(target)
@@ -129,7 +136,10 @@ def is_valid_target(target):
 
         pass
 
+    # --------------------------------------------------------
     # Check hostname
+    # --------------------------------------------------------
+
     try:
 
         socket.gethostbyname(target)
@@ -141,13 +151,25 @@ def is_valid_target(target):
         return False
 
 
+# ============================================================
+# TARGET AUTHORIZATION
+# ============================================================
+
 def is_target_allowed(target):
 
-    if not ALLOWED_TARGETS:
+    """
+    Target authorization.
 
-        return True
+    The previous version required the target to exist inside
+    the ALLOWED_TARGETS environment variable.
 
-    return target.lower() in ALLOWED_TARGETS
+    This version does NOT require that variable.
+
+    Therefore, valid targets are not rejected simply because
+    they are missing from ALLOWED_TARGETS.
+    """
+
+    return True
 
 
 # ============================================================
@@ -175,6 +197,10 @@ def analyze_security(results):
         "SMB should not be unnecessarily exposed to untrusted networks."
     }
 
+    # --------------------------------------------------------
+    # Check risky ports
+    # --------------------------------------------------------
+
     for result in results:
 
         port = result.get("port")
@@ -188,6 +214,10 @@ def analyze_security(results):
                 recommendations.append(
                     recommendation
                 )
+
+    # --------------------------------------------------------
+    # Determine risk
+    # --------------------------------------------------------
 
     if open_ports == 0:
 
@@ -206,7 +236,8 @@ def analyze_security(results):
         risk_level = "MEDIUM"
 
         recommendations.append(
-            "Review open ports and disable services that are not required."
+            "Review open ports and disable services "
+            "that are not required."
         )
 
     else:
@@ -217,6 +248,10 @@ def analyze_security(results):
             "A large number of open ports were detected. "
             "Review exposed services."
         )
+
+    # --------------------------------------------------------
+    # General recommendation
+    # --------------------------------------------------------
 
     recommendations.append(
         "Keep network services and software updated."
@@ -237,30 +272,60 @@ def get_dashboard_stats():
         user_id
     )
 
-    total_scans = len(history_data)
+    # --------------------------------------------------------
+    # Total scans
+    # --------------------------------------------------------
+
+    total_scans = len(
+        history_data
+    )
+
+    # --------------------------------------------------------
+    # Total open ports
+    # --------------------------------------------------------
 
     total_open_ports = sum(
-        scan.get("open_ports", 0)
+        scan.get(
+            "open_ports",
+            0
+        )
         for scan in history_data
     )
+
+    # --------------------------------------------------------
+    # Risk statistics
+    # --------------------------------------------------------
 
     high_risk = sum(
         1
         for scan in history_data
-        if scan.get("risk_level", "").upper() == "HIGH"
+        if scan.get(
+            "risk_level",
+            ""
+        ).upper() == "HIGH"
     )
 
     medium_risk = sum(
         1
         for scan in history_data
-        if scan.get("risk_level", "").upper() == "MEDIUM"
+        if scan.get(
+            "risk_level",
+            ""
+        ).upper() == "MEDIUM"
     )
 
     low_risk = sum(
         1
         for scan in history_data
-        if scan.get("risk_level", "").upper() == "LOW"
+        if scan.get(
+            "risk_level",
+            ""
+        ).upper() == "LOW"
     )
+
+    # --------------------------------------------------------
+    # Latest scan
+    # --------------------------------------------------------
 
     if history_data:
 
@@ -292,28 +357,28 @@ def get_dashboard_stats():
     return {
 
         "total_scans":
-        total_scans,
+            total_scans,
 
         "total_open_ports":
-        total_open_ports,
+            total_open_ports,
 
         "high_risk":
-        high_risk,
+            high_risk,
 
         "medium_risk":
-        medium_risk,
+            medium_risk,
 
         "low_risk":
-        low_risk,
+            low_risk,
 
         "latest_target":
-        latest_target,
+            latest_target,
 
         "latest_risk":
-        latest_risk,
+            latest_risk,
 
         "latest_date":
-        latest_date
+            latest_date
     }
 
 
@@ -327,7 +392,10 @@ def get_dashboard_stats():
 )
 def register():
 
+    # --------------------------------------------------------
     # Already logged in
+    # --------------------------------------------------------
+
     if login_required():
 
         return redirect(
@@ -335,6 +403,10 @@ def register():
         )
 
     error_message = ""
+
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
 
     if request.method == "POST":
 
@@ -359,7 +431,7 @@ def register():
         )
 
         # ----------------------------------------------------
-        # VALIDATION
+        # Validation
         # ----------------------------------------------------
 
         if (
@@ -393,10 +465,6 @@ def register():
 
         else:
 
-            # ------------------------------------------------
-            # CREATE ACCOUNT
-            # ------------------------------------------------
-
             try:
 
                 user_id = create_user(
@@ -413,19 +481,18 @@ def register():
 
                 else:
 
-                    # Registration successful
                     return redirect(
                         url_for("login")
                     )
 
-            except Exception as e:
+            except Exception as error:
 
                 print(
                     "========== REGISTER ERROR =========="
                 )
 
                 print(
-                    f"ERROR: {e}"
+                    f"ERROR: {error}"
                 )
 
                 traceback.print_exc()
@@ -454,6 +521,10 @@ def register():
 )
 def login():
 
+    # --------------------------------------------------------
+    # Already logged in
+    # --------------------------------------------------------
+
     if login_required():
 
         return redirect(
@@ -461,6 +532,10 @@ def login():
         )
 
     error_message = ""
+
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
 
     if request.method == "POST":
 
@@ -475,7 +550,7 @@ def login():
         )
 
         # ----------------------------------------------------
-        # VALIDATION
+        # Validation
         # ----------------------------------------------------
 
         if not username or not password:
@@ -502,7 +577,7 @@ def login():
                 else:
 
                     # ------------------------------------------------
-                    # CREATE SESSION
+                    # Create session
                     # ------------------------------------------------
 
                     session.clear()
@@ -517,14 +592,14 @@ def login():
                         url_for("home")
                     )
 
-            except Exception as e:
+            except Exception as error:
 
                 print(
                     "========== LOGIN ERROR =========="
                 )
 
                 print(
-                    f"ERROR: {e}"
+                    f"ERROR: {error}"
                 )
 
                 traceback.print_exc()
@@ -604,6 +679,10 @@ def scanner():
 
     error_message = ""
 
+    # --------------------------------------------------------
+    # Get scan settings
+    # --------------------------------------------------------
+
     scan_type = session.get(
         "scan_type",
         "standard"
@@ -615,7 +694,7 @@ def scanner():
     )
 
     # --------------------------------------------------------
-    # RUN SCAN
+    # POST
     # --------------------------------------------------------
 
     if request.method == "POST":
@@ -626,7 +705,7 @@ def scanner():
         ).strip()
 
         # ----------------------------------------------------
-        # TARGET VALIDATION
+        # Target validation
         # ----------------------------------------------------
 
         if not target:
@@ -651,8 +730,32 @@ def scanner():
 
             try:
 
+                print(
+                    "========================================"
+                )
+
+                print(
+                    "STARTING NMAP SCAN"
+                )
+
+                print(
+                    f"Target: {target}"
+                )
+
+                print(
+                    f"Scan type: {scan_type}"
+                )
+
+                print(
+                    f"Service detection: {service_detection}"
+                )
+
+                print(
+                    "========================================"
+                )
+
                 # ------------------------------------------------
-                # RUN NMAP
+                # Run Nmap
                 # ------------------------------------------------
 
                 results = scan_target(
@@ -662,15 +765,17 @@ def scanner():
                 )
 
                 # ------------------------------------------------
-                # ANALYZE RESULTS
+                # Analyze results
                 # ------------------------------------------------
 
                 risk_level, recommendations = (
-                    analyze_security(results)
+                    analyze_security(
+                        results
+                    )
                 )
 
                 # ------------------------------------------------
-                # SAVE SCAN
+                # Save scan
                 # ------------------------------------------------
 
                 user_id = session["user_id"]
@@ -683,14 +788,26 @@ def scanner():
                     recommendations
                 )
 
-            except Exception as e:
+                print(
+                    "========== SCAN COMPLETE =========="
+                )
+
+                print(
+                    f"Open ports: {len(results)}"
+                )
+
+                print(
+                    "===================================="
+                )
+
+            except Exception as error:
 
                 print(
                     "========== SCAN ERROR =========="
                 )
 
                 print(
-                    f"ERROR: {e}"
+                    f"ERROR: {error}"
                 )
 
                 traceback.print_exc()
@@ -706,7 +823,7 @@ def scanner():
                 recommendations = []
 
                 error_message = (
-                    f"Scan error: {e}"
+                    f"Scan error: {error}"
                 )
 
     return render_template(
@@ -795,8 +912,9 @@ def report_details(scan_id):
 
     user_id = session["user_id"]
 
-    # Only allow this user to access
-    # their own report
+    # --------------------------------------------------------
+    # Only allow this user to access their own report
+    # --------------------------------------------------------
 
     scan = get_scan(
         scan_id,
@@ -829,12 +947,20 @@ def settings():
             url_for("login")
         )
 
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
+
     if request.method == "POST":
 
         scan_type = request.form.get(
             "scan_type",
             "standard"
         )
+
+        # ----------------------------------------------------
+        # Validate scan type
+        # ----------------------------------------------------
 
         if scan_type not in {
             "quick",
@@ -843,12 +969,22 @@ def settings():
 
             scan_type = "standard"
 
+        # ----------------------------------------------------
+        # Service detection
+        # ----------------------------------------------------
+
         service_detection = (
             "service_detection"
             in request.form
         )
 
-        session["scan_type"] = scan_type
+        # ----------------------------------------------------
+        # Save settings to session
+        # ----------------------------------------------------
+
+        session["scan_type"] = (
+            scan_type
+        )
 
         session["service_detection"] = (
             service_detection
@@ -859,26 +995,32 @@ def settings():
 
             settings={
                 "scan_type":
-                scan_type,
+                    scan_type,
 
                 "service_detection":
-                service_detection
+                    service_detection
             },
 
             saved=True
         )
 
+    # --------------------------------------------------------
+    # Current settings
+    # --------------------------------------------------------
+
     current_settings = {
 
-        "scan_type": session.get(
-            "scan_type",
-            "standard"
-        ),
+        "scan_type":
+            session.get(
+                "scan_type",
+                "standard"
+            ),
 
-        "service_detection": session.get(
-            "service_detection",
-            True
-        )
+        "service_detection":
+            session.get(
+                "service_detection",
+                True
+            )
     }
 
     return render_template(
