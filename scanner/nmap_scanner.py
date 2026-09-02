@@ -24,15 +24,17 @@ def scan_target(
     Scan an authorized target using Nmap.
 
     Quick Scan:
-        - Scans Nmap's 100 most common ports
-        - Uses TCP Connect Scan
+        - Nmap's 100 most common ports
+        - TCP Connect Scan
+        - Skips host discovery
         - Does not require raw socket privileges
 
     Standard Scan:
-        - Scans TCP ports 1-1000
-        - Uses TCP Connect Scan
+        - TCP ports 1-1000
+        - TCP Connect Scan
+        - Skips host discovery
         - Optional service detection
-        - Uses lightweight version detection
+        - Lightweight version detection
 
     Returns:
         [
@@ -92,18 +94,22 @@ def scan_target(
         # QUICK SCAN
         # ----------------------------------------------------
         #
-        # -sT = TCP Connect Scan
+        # -Pn
+        #     Skip host discovery.
         #
-        # Important:
-        # Render containers may not have permission to create
-        # raw sockets. TCP Connect Scan works without raw
-        # socket privileges.
+        # -sT
+        #     TCP Connect Scan.
+        #     Does not require raw socket privileges.
         #
-        # -F = Fast scan
-        # Scans Nmap's 100 most common ports.
+        # -T4
+        #     Faster timing.
+        #
+        # -F
+        #     Scan Nmap's 100 most common ports.
         #
 
         arguments = [
+            "-Pn",
             "-sT",
             "-T4",
             "-F"
@@ -115,12 +121,21 @@ def scan_target(
         # STANDARD SCAN
         # ----------------------------------------------------
         #
-        # Scan TCP ports 1-1000.
+        # -Pn
+        #     Skip host discovery.
         #
-        # -sT = TCP Connect Scan
+        # -sT
+        #     TCP Connect Scan.
+        #
+        # -T4
+        #     Faster timing.
+        #
+        # -p 1-1000
+        #     Scan TCP ports 1 through 1000.
         #
 
         arguments = [
+            "-Pn",
             "-sT",
             "-T4",
             "-p",
